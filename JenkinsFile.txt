@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    sh './.build.sh' // This should contain your build script
+                }
+            }
+        }
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    // Push to Docker Hub depending on the branch
+                    if (env.BRANCH_NAME == 'dev') {
+                        sh 'docker push yourusername/dev:latest'
+                    } else if (env.BRANCH_NAME == 'master') {
+                        sh 'docker push yourusername/prod:latest'
+                    }
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    sh './deploy.sh' // Deployment script for the Docker image
+                }
+            }
+        }
+    }
+    triggers {
+        // Trigger builds on push to dev or master branches
+        githubPush()
+    }
+}
